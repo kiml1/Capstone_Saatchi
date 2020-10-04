@@ -11,6 +11,7 @@ df = pd.read_csv("artists.csv", usecols=['slug']).drop_duplicates()
 slug_list = df['slug'].to_list()
 
 driver = webdriver.Chrome()
+driver.maximize_window()
 
 slugs = []
 joined_dates = []
@@ -18,11 +19,11 @@ products = []
 print_avail = []
 is_new = []
 
-for slug in slug_list[6:10]:
+for slug in slug_list[:2000]:
 	# Get to the artist's page
 	print(slug)
-	driver.get(f'https://www.artfinder.com/{slug}/sort-artist_order/page-1/#/')
-	time.sleep(1)
+	driver.get(f'https://www.artfinder.com/artist/{slug}/sort-artist_order/page-1/#/')
+	time.sleep(2)
 	# Close the pop up for discount
 	try:
 		close_pop_up = driver.find_element_by_xpath('//div[@class="af-register-modal--b"]//a[@class="close"]')
@@ -36,10 +37,14 @@ for slug in slug_list[6:10]:
 	# WebDriverWait(driver, 10).until(
 	# 	EC.presence_of_element_located((By.XPATH,
 	# 		'//div[@class="text-right margin margin-l margin-bottom"]')))
-	time.sleep(7)
+	time.sleep(2)
+	driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+	time.sleep(2)
 	# Find two elements
-	joined_artfinder = driver.find_element_by_xpath('//p[@class="af-small-text margin margin-none"]').text.split(": ")[1]
-
+	try:
+		joined_artfinder = driver.find_element_by_xpath('//p[@class="af-small-text margin margin-none"]').text.split(": ")[1]
+	except:
+		joined_artfinder = "NA"
 	# Find number of pages
 	try:
 		num_page = driver.find_element_by_xpath('//ul[@class="af-pagination margin margin-s margin-top"]').text.split("\n")[-1]
@@ -50,18 +55,19 @@ for slug in slug_list[6:10]:
 	for page in range(1,int(num_page)+1):
 		# No need to get driver for the already loaded first page 
 		if page != 1:
-			driver.get(f'https://www.artfinder.com/{slug}/sort-artist_order/page-{page}/#/')
+			driver.get(f'https://www.artfinder.com/artist/{slug}/sort-artist_order/page-{page}/#/')
 			# WebDriverWait(driver, 10).until(
 			# 	EC.visibility_of_all_elements_located((By.XPATH,
 			# 		'//div[@style="display: flex; margin-left: -10px;"]')))
-			time.sleep(7)
+			time.sleep(2)
 			# Scroll thill the bottom
 			driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
 			# WebDriverWait(driver, 10).until(
 			# 	EC.visibility_of_all_elements_located((By.XPATH,
 			# 		'//div[@style="display: flex; margin-left: -10px;"]')))		
-			time.sleep(7)
-		
+			time.sleep(2)
+			driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+			time.sleep(2)
 		# Scrape the product names
 		product_names = driver.find_element_by_xpath('//div[@class="af-place-container margin margin-s margin-bottom"]')
 		product_names = product_names.find_elements_by_xpath('//a[@class="af-place fit-in"]')
